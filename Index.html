@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Birthday Surprise — Deepiksha</title>
+<style>
+  :root{
+    --pink1:#ff6b6b;
+    --pink2:#ff9aa2;
+    --glass: rgba(255,255,255,0.06);
+    --accent-ice: #aef0ff;
+  }
+  html,body{height:100%;margin:0;font-family:Poppins,system-ui,Segoe UI,Roboto,-apple-system; background:#0b0b20; color:#fff; -webkit-font-smoothing:antialiased;}
+  /* page container */
+  .section{ position:absolute; inset:0; display:none; flex-direction:column; align-items:center; overflow:auto; padding:28px; box-sizing:border-box; }
+  .section.active{ display:flex; }
+
+  /* top-right music toggle */
+  #musicToggle {
+    position:fixed; right:18px; top:14px; z-index:9999;
+    width:46px; height:46px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(135deg,var(--pink1),var(--pink2)); box-shadow:0 8px 30px rgba(255,100,140,0.12); cursor:pointer;
+    transition:transform .18s ease, box-shadow .18s;
+    border:none;
+  }
+  #musicToggle.paused{ background:rgba(255,255,255,0.06); box-shadow:0 6px 18px rgba(0,0,0,0.4); }
+  #musicToggle:active{ transform:scale(.98); }
+  /* pulse when playing */
+  #musicToggle.playing{ animation: pulse 1.8s infinite; }
+  @keyframes pulse{ 0%{ box-shadow:0 8px 30px rgba(255,100,140,0.18);} 50%{ box-shadow:0 14px 48px rgba(255,120,160,0.28);} 100%{ box-shadow:0 8px 30px rgba(255,100,140,0.18);} }
+
+  /* small icon inside */
+  #musicToggle svg{ width:20px;height:20px; fill:#fff; }
+
+  /* === PAGE 1 (Birthday) === */
+  #page1{ background: radial-gradient(circle at center,#1a1a2e,#0f0f1a); justify-content:center; text-align:center; }
+  #page1 h1{ font-size:56px; margin:6px 0; color:#fff; text-shadow:0 0 18px var(--pink1),0 0 36px var(--pink2); animation:glow 2s infinite alternate; }
+  @keyframes glow{ from{ text-shadow:0 0 12px var(--pink2);} to{ text-shadow:0 0 36px #fff;} }
+  #page1 p{ max-width:920px; margin:14px 0; font-size:20px; color:#fff; }
+
+  .cta{
+    margin-top:18px; padding:12px 26px; border-radius:28px; border:0; font-weight:700; cursor:pointer;
+    background:linear-gradient(90deg,var(--pink1),var(--pink2)); color:#fff; box-shadow:0 10px 36px rgba(255,110,150,0.14);
+  }
+
+  /* floating shapes only on page1 (injected via JS) */
+  .float-shape{ position:absolute; bottom:-160px; opacity:0.95; border-radius:50%; pointer-events:none; animation:floatUp linear infinite; }
+  @keyframes floatUp{ 0%{ transform:translateY(0) rotate(0deg); opacity:1 } 100%{ transform:translateY(-125vh) rotate(360deg); opacity:0 } }
+
+  /* === PAGE 2 (Password) === */
+  #page2{ background: linear-gradient(180deg,#020024,#004e92); align-items:center; justify-content:center; }
+  .pw-card{ width:100%; max-width:560px; background:var(--glass); padding:28px; border-radius:14px; box-shadow:0 30px 80px rgba(0,0,0,0.6); text-align:center; }
+  .pw-card h2{ margin:0 0 8px; color:var(--accent-ice); }
+  .pw-card .explain{ color:rgba(255,255,255,0.85); margin-bottom:12px; font-size:15px; }
+  #passwordInput{ width:66%; max-width:320px; padding:10px 12px; border-radius:10px; border:0; background:rgba(255,255,255,0.04); color:#fff; font-size:16px; text-align:center; }
+  .pw-actions{ margin-top:12px; display:flex; gap:10px; align-items:center; justify-content:center; flex-wrap:wrap; }
+  .pw-btn{ background:linear-gradient(90deg,#00e5ff,#00b3b3); border:0; padding:10px 14px; border-radius:12px; color:#000; font-weight:800; cursor:pointer; box-shadow:0 10px 30px rgba(0,200,255,0.12); }
+  .pw-toggle{ color:#aef0ff; cursor:pointer; font-size:14px; user-select:none; }
+
+  .numbers-bg{ position:absolute; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+  .numbers-bg span{ position:absolute; color:rgba(255,255,255,0.06); font-weight:700; user-select:none; text-shadow:0 0 8px rgba(0,255,255,0.06); transform:translateY(0); }
+
+  /* === PAGE 3 (Q&A) === */
+  #page3{ background: linear-gradient(180deg,#0b1220,#172238); align-items:flex-start; padding-top:34px; }
+  .qa-container{ width:100%; max-width:920px; margin:0 auto 40px; display:flex; flex-direction:column; gap:14px; padding-bottom:20px; }
+  .qa-header{ text-align:center; color:var(--accent-ice); margin-bottom:6px; }
+  .qa-header p{ color:rgba(255,255,255,0.65); margin-top:6px; font-size:14px; }
+  .qa-card{ background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.04); padding:14px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.45); }
+  .qa-card .q{ color:#c6fbff; font-weight:700; font-size:16px; }
+  .qa-card textarea{ width:100%; min-height:64px; max-height:220px; resize:vertical; padding:10px; margin-top:8px; border-radius:10px; border:0; background:rgba(255,255,255,0.03); color:#fff; font-size:15px; outline:none; }
+  .qa-actions{ display:flex; gap:14px; justify-content:center; margin-top:18px; flex-wrap:wrap; }
+  .qa-continue{ padding:12px 28px; border-radius:28px; border:0; font-weight:800; cursor:pointer; background:linear-gradient(90deg,#ff9aa2,#ff6b6b); color:#210b12; box-shadow:0 12px 32px rgba(255,110,160,0.18); }
+
+  /* === PAGE 4 (Warm Wishes) === */
+  #page4{ background: linear-gradient(135deg,#2b0b26,#40143f 40%, #ff6b9a 100%); align-items:center; padding-top:44px; }
+  .wish-card{ width:100%; max-width:930px; background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02)); border-radius:18px; padding:28px; box-shadow:0 30px 80px rgba(0,0,0,0.6); border:1px solid rgba(255,255,255,0.04); }
+  .wish-title{ text-align:center; color:#ffd8f0; font-size:28px; margin-bottom:12px; }
+  .wish-text{ color:#fff; font-size:18px; line-height:1.8; white-space:pre-wrap; text-align:left; }
+
+  .wish-actions{ display:flex; gap:12px; justify-content:center; margin-top:18px; flex-wrap:wrap; }
+
+  /* === PAGE 5 (Surprise) === */
+  #page5{ background: radial-gradient(circle at center, #2a021a, #3d0930); align-items:center; justify-content:flex-start; padding-top:34px; overflow:hidden; }
+  .surprise-card{ width:100%; max-width:900px; padding:28px; border-radius:16px; background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02)); box-shadow:0 30px 80px rgba(0,0,0,0.7); border:1px solid rgba(255,255,255,0.035); }
+  .surprise-title{ text-align:center; font-size:28px; color:#fff; margin-bottom:10px; text-shadow:0 0 20px rgba(255,120,160,0.14); }
+  .surprise-actions{ display:flex; gap:14px; justify-content:center; margin-top:16px; }
+  .surprise-btn{ padding:12px 26px; border-radius:28px; border:0; cursor:pointer; font-weight:800; background:linear-gradient(90deg,var(--pink1),var(--pink2)); color:#fff; box-shadow:0 14px 36px rgba(255,100,140,0.18); }
+  .surprise-btn.secondary{ background:linear-gradient(90deg,#ffd6e0,#ffb6c1); color:#210b12; }
+
+  /* continuous confetti elements (injected) */
+  .confetti{ position:fixed; left:0; top:0; width:12px; height:18px; opacity:0.95; transform-origin:center; border-radius:2px; pointer-events:none; animation:confFloat linear infinite; }
+  @keyframes confFloat{ 0%{ transform:translateY(-10vh) rotate(0deg) } 100%{ transform:translateY(120vh) rotate(360deg) } }
+
+  /* responsive */
+  @media (max-width:680px){
+    .wish-text{ font-size:16px; }
+    #page1 h1{ font-size:40px; }
+    .pw-card{ padding:18px; }
+    .qa-container{ padding: 0 8px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Music Toggle (top-right) -->
+<button id="musicToggle" class="paused" aria-label="Toggle background music" title="Toggle music">
+  <!-- speaker icon -->
+  <svg id="musicIcon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9v6h4l5 5V4L9 9H5z"/></svg>
+</button>
+
+<!-- PAGE 1: Birthday -->
+<section id="page1" class="section active" aria-label="Birthday page">
+  <h1>🎂 Happy Birthday DEEPIKSHA 🎂</h1>
+  <p>Wishing you endless joy, laughter, and love — click the gift to continue the surprise.</p>
+  <button class="cta" onclick="goTo('page2')">Open Secret Page 🎁</button>
+</section>
+
+<!-- PAGE 2: Password -->
+<section id="page2" class="section" aria-label="Password page">
+  <div class="numbers-bg" id="numbersBg" aria-hidden="true"></div>
+  <div class="pw-card" role="group" aria-label="Password card">
+    <h2>🔒 Secret Code</h2>
+    <div class="explain">Enter the code to unlock the next page</div>
+    <input id="passwordInput" type="password" inputmode="numeric" placeholder="Enter password" aria-label="password" />
+    <div class="pw-actions">
+      <div id="togglePw" class="pw-toggle" role="button" tabindex="0">👁️ Show</div>
+      <button class="pw-btn" id="pwSubmit">Unlock</button>
+      <button class="pw-btn" onclick="goTo('page1')">Back</button>
+    </div>
+  </div>
+</section>
+
+<!-- PAGE 3: Q&A -->
+<section id="page3" class="section" aria-label="Question and answer page">
+  <div class="qa-container" role="main">
+    <div class="qa-header"><h2>💭 Answer These Questions</h2><p>Write short honest answers — everything is private here.</p></div>
+
+    <div class="qa-card"><div class="q">Q1) WHERE WE HAVE MET?</div><textarea placeholder="Write your answer..."></textarea></div>
+    <div class="qa-card"><div class="q">Q2) WHAT YOU HAVE LOST WHICH WE HAVE FOUND TOGETHER?</div><textarea placeholder="Write your answer..."></textarea></div>
+    <div class="qa-card"><div class="q">Q3) WHAT IS YOUR FAVOURITE CHOCOLATE WHICH CONSIST OF GIFTS INSIDE IT?</div><textarea placeholder="Write your answer..."></textarea></div>
+    <div class="qa-card"><div class="q">Q4) WHO IS THE FIRST PERSON COMES IN YOUR MIND WHEN YOU FALL IN TROUBLE?</div><textarea placeholder="Write your answer..."></textarea></div>
+    <div class="qa-card"><div class="q">Q5) WHAT IS THE BEST MEMORY OF 2024-2025?</div><textarea placeholder="Write your answer..."></textarea></div>
+    <div class="qa-card"><div class="q">Q6) WHAT IS THE BEST BIRTHDAY GIFT A PERSON CAN GIVE YOU?</div><textarea placeholder="Write your answer..."></textarea></div>
+    <div class="qa-card"><div class="q">Q7) WHICH IS YOUR DREAM PLACE YOU WANT TO VISIT WITH YOUR MOST LOVED PERSON?</div><textarea placeholder="Write your answer..."></textarea></div>
+    <div class="qa-card"><div class="q">Q8) WHICH THING COMES IN YOUR MIND WHEN YOU REALISE THAT YOU DID A BIG MISTAKE?</div><textarea placeholder="Write your answer..."></textarea></div>
+    <div class="qa-card"><div class="q">Q9) WHICH IS YOUR FAVOURITE SONG?</div><textarea placeholder="Write your answer..."></textarea></div>
+    <div class="qa-card"><div class="q">Q10) WHAT IS YOUR FAVOURITE COLOUR?</div><textarea placeholder="Write your answer..."></textarea></div>
+
+    <div class="qa-actions">
+      <button class="qa-continue" onclick="goTo('page4')">➡️ Continue to Warm Wishes</button>
+      <button class="qa-continue" style="background:linear-gradient(90deg,#bde6ff,#7ec8ff)" onclick="goTo('page2')">⬅️ Back to Password</button>
+    </div>
+  </div>
+</section>
+
+<!-- PAGE 4: Warm Wishes -->
+<section id="page4" class="section" aria-label="Warm wishes">
+  <div class="wish-card" role="article" aria-label="Warm birthday message">
+    <div class="wish-title">💖 My Warmest Wish For You, Deepiksha</div>
+    <div class="wish-text" id="wishText">
+HAPPIEST BIRTHDAY TO MY SWEETEST PERSON (DEEPIKSHA ❤️)
+HEY DEEPIKSHA, Finally a special day comes after not having a single talk for last 3 months but believe me there were not a single minute I haven’t thought about you. Whenever a day start I always wished you a Beautiful Good Morning to you whenever I go to sleep I always think of you that you are doing good in your life and wished you a Good Night. First I have to wish you from bottom of my heart that “HAPPY BIRTHDAY DEEPIKSHA, GOD BLESS YOU AND GIVE YOU STRENGTH TO ACHIEVE ALL YOUR GOALS AND BE VERY SUCCESSFULL IN LIFE’’. And you are the bravest and strongest girl I have met in my life I haven’t seen someone who is suffering from so much pain and difficulties in life whether its about you are suffering from family problems and something personal but believe me you have got the gods blessing which always help you to stay stronger in tough times. Lets talk about something which is very important that is you and yes it's always you who is most important. So do you know you have got the most beautiful eyes in which someone can live his whole life while just watching them. But that’s not the end you got the most precious thing that is your dimple you can make someone smile without saying something your adorable smile is enough to forgot someone’s pain and everybody wants a wife like you who can say bye while going to office and make his day stress free for the rest of the day. And you got the lovely voice may your family says that you speak like crow but believe me you are not and you know the one fact that I can listen you whole day without saying single words in between and you know whenever you are talking I always choose to listen you while I’m with you or on call it’s the best thing for me that I can hear you and I always regretted after fighting with you to not get a single call or text from you is the worst part of my life. I can’t tell you last 3 months were the worst months for me as I didn’t show you and not even heard a single word from you. It was all about how is it going but let it be everything is written in good way. I just want to say that YES I’m missing you so much but don’t want to disturb you. Hoping that you are doing really amazing things and living happily without me. And I want you to be happy whatever the circumstances are. But definitely this message is not to disturb you or not to make you realise that I’m missing you. Because you know as well your absence always give me a pain whether its in the library or not getting call from you more than one day. I always feel grateful about our meeting yes that’s the beautiful memory I have stored in my life. One thing relates us maybe you remember its about that two crows who always choose to sat together, when we were sitting together and look up and finding that crows were sitting together is something meaningful when we don’t sat together then crows also not sat together and this happened all the time. Thank you so much DEEPIKSHA for giving me the best memories of my life its just about only 1 year but I feel like you are my last life’s soulmate as we shared a best bond together you can deny all this thing but you can not speak lie from yourself. There are a lot to say for you because you are the damn precious thing to me but I’m not gonna speak too much as you already know what you mean to me and how much I always used to cheer you and stand behind you. Just remember one thing whenever you can’t handle any difficult situation alone then don’t forget to call me you are the only one who is always free to call me whenever you are in the need of me I will be definitely there if your family chooses not to support you but I will be there to support you. I respect you a lot DEEPIKSHA. BE HAPPY, BE SAFE, BE STRONG AND BE THE BRAVEST. That's all I wanted to say SWEETU ❤️.
+    </div>
+
+    <div class="wish-actions">
+      <button class="qa-continue" onclick="goTo('page3')" style="background:linear-gradient(90deg,#bde6ff,#7ec8ff)">⬅️ Back to Q&A</button>
+      <button class="qa-continue" onclick="goTo('page5')">➡️ Continue to Surprise</button>
+    </div>
+  </div>
+</section>
+
+<!-- PAGE 5: Surprise -->
+<section id="page5" class="section" aria-label="Surprise page">
+  <div class="surprise-card">
+    <div class="surprise-title">🎁 Surprise — Open Your Gift</div>
+    <div style="text-align:center; color:rgba(255,255,255,0.9); margin-bottom:8px;">Click the gift to open the special surprise (opens in a new tab)</div>
+    <div class="surprise-actions">
+      <button class="surprise-btn" id="openSurprise">🎁 Open Your Surprise</button>
+      <button class="surprise-btn secondary" onclick="goTo('page4')">⬅️ Back to Wishes</button>
+    </div>
+  </div>
+</section>
+
+<script>
+/* ---------- Page navigation ---------- */
+function goTo(id){
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  const t = document.getElementById(id);
+  t.classList.add('active');
+  // reset scroll to top for pages that scroll
+  t.scrollTop = 0;
+  // accessibility focus
+  setTimeout(()=> t.focus?.(), 60);
+}
+
+/* ---------- Password logic ---------- */
+const pwInput = document.getElementById('passwordInput');
+document.getElementById('pwSubmit').addEventListener('click', ()=>{
+  if (pwInput.value.trim() === "03112005"){
+    goTo('page3');
+  } else {
+    alert("Incorrect password — try again.");
+  }
+});
+document.getElementById('togglePw').addEventListener('click', function(){
+  if (pwInput.type === 'password'){ pwInput.type='text'; this.textContent = '🙈 Hide'; }
+  else { pwInput.type='password'; this.textContent = '👁️ Show'; }
+});
+pwInput.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('pwSubmit').click(); });
+
+/* ---------- animated numbers background for page2 ---------- */
+(function createNumbers(){
+  const container = document.getElementById('numbersBg');
+  const total = 48;
+  for(let i=0;i<total;i++){
+    const sp = document.createElement('span');
+    sp.textContent = Math.floor(Math.random()*10);
+    sp.style.left = (Math.random()*95) + 'vw';
+    sp.style.top  = (Math.random()*120) + 'vh';
+    sp.style.fontSize = (12 + Math.random()*36) + 'px';
+    const dur = 6 + Math.random()*9;
+    sp.style.animationDuration = dur + 's';
+    sp.style.opacity = (0.03 + Math.random()*0.12).toString();
+    container.appendChild(sp);
+  }
+})();
+
+/* ---------- floating shapes only on page1 ---------- */
+(function floatingShapes(){
+  setInterval(()=>{
+    if (!document.getElementById('page1').classList.contains('active')) return;
+    const el = document.createElement('div');
+    el.className = 'float-shape';
+    const size = 18 + Math.random()*48;
+    el.style.width = size + 'px';
+    el.style.height = (size * (0.85 + Math.random()*0.5)) + 'px';
+    el.style.left = (4 + Math.random()*92) + 'vw';
+    el.style.background = `linear-gradient(135deg, hsl(${Math.random()*360} 80% 66%), hsl(${Math.random()*360} 80% 56%))`;
+    el.style.animationDuration = (6 + Math.random()*8) + 's';
+    document.body.appendChild(el);
+    setTimeout(()=> el.remove(), 11000);
+  }, 320);
+})();
+
+/* ---------- Surprise page confetti (continuous) ---------- */
+(function createConfettiLoop(){
+  function spawn(){
+    if (!document.getElementById('page5').classList.contains('active')) { setTimeout(spawn, 400); return; }
+    // create a few confetti at random x positions
+    for(let i=0;i<6;i++){
+      const c = document.createElement('div');
+      c.className = 'confetti';
+      c.style.left = (Math.random()*100) + 'vw';
+      c.style.width = (6 + Math.random()*14) + 'px';
+      c.style.height = (10 + Math.random()*20) + 'px';
+      c.style.background = `linear-gradient(180deg, hsl(${Math.random()*40+330} 80% 70%), hsl(${Math.random()*40+300} 60% 50%))`;
+      c.style.animationDuration = (6 + Math.random()*8) + 's';
+      c.style.opacity = (0.85 + Math.random()*0.15);
+      document.body.appendChild(c);
+      // remove after animation
+      setTimeout(()=> c.remove(), (parseFloat(c.style.animationDuration)*1000) + 600 );
+    }
+    setTimeout(spawn, 900);
+  }
+  spawn();
+})();
+
+/* ---------- Open surprise link ---------- */
+document.getElementById('openSurprise').addEventListener('click', ()=>{
+  // opens in new tab
+  window.open('https://go.screenpal.com/watch/cT6OXvnb8dU', '_blank', 'noopener');
+});
+
+/* ---------- Background music (WebAudio) ---------- */
+/* Soft instrumental: simple pad + gentle arpeggio loop synthesized in-browser */
+let audioCtx = null;
+let masterGain = null;
+let isPlaying = false;
+let schedulerId = null;
+let arpIndex = 0;
+const arpNotes = [ 261.63, 329.63, 392.00, 523.25 ]; // C4 E4 G4 C5
+function initAudio(){
+  if (audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  masterGain = audioCtx.createGain();
+  masterGain.gain.value = 0.0; // start muted until user toggles
+  masterGain.connect(audioCtx.destination);
+
+  /* Soft pad using 3 detuned oscillators + lowpass */
+  const padOscs = [];
+  const padNodes = [];
+  const padGain = audioCtx.createGain();
+  padGain.gain.value = 0.18;
+  padGain.connect(masterGain);
+
+  const padFilter = audioCtx.createBiquadFilter();
+  padFilter.type = 'lowpass';
+  padFilter.frequency.value = 1200;
+  padFilter.Q.value = 0.7;
+  padFilter.connect(padGain);
+
+  // create continuous subtle chord via oscillators, detuned
+  const freqs = [261.63, 392.00, 523.25]; // C major chord C4 G4 C5
+  freqs.forEach((f, i) => {
+    const o = audioCtx.createOscillator();
+    o.type = 'sine';
+    o.frequency.value = f * (1 + (i-1)*0.0025);
+    const g = audioCtx.createGain();
+    g.gain.value = 0.0;
+    o.connect(g);
+    g.connect(padFilter);
+    o.start();
+    padOscs.push(o);
+    padNodes.push(g);
+  });
+
+  // slowly ramp pad gain in/out to avoid clicks
+  let padOn = true;
+  const padFade = () => {
+    padNodes.forEach((g, i) => {
+      g.gain.cancelScheduledValues(audioCtx.currentTime);
+      g.gain.setValueAtTime(g.gain.value, audioCtx.currentTime);
+      g.gain.linearRampToValueAtTime(padOn ? 0.12 : 0.0, audioCtx.currentTime + 1.6);
+    });
+    padOn = !padOn;
+  };
+  // initial fade in
+  padFade();
+
+  // gentle periodic modulation to keep pad alive
+  setInterval(()=> { padFade(); }, 9000);
+
+  // Arpeggio scheduler (simple)
+  const scheduleArp = () => {
+    const now = audioCtx.currentTime;
+    const t0 = now + 0.02;
+    const noteDur = 0.5;
+    // create pluck-like tone for the current arp note
+    const osc = audioCtx.createOscillator();
+    osc.type = 'triangle';
+    osc.frequency.value = arpNotes[arpIndex % arpNotes.length];
+    const g = audioCtx.createGain();
+    g.gain.value = 0.0;
+    osc.connect(g);
+    g.connect(masterGain);
+    const attack = 0.01;
+    const decay = noteDur * 0.9;
+    g.gain.setValueAtTime(0.0, t0);
+    g.gain.linearRampToValueAtTime(0.12, t0 + attack);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + attack + decay);
+    osc.start(t0);
+    osc.stop(t0 + attack + decay + 0.05);
+    arpIndex++;
+  };
+
+  // schedule loop using setInterval (coarse but ok here)
+  schedulerId = setInterval(()=> {
+    if (isPlaying && audioCtx) scheduleArp();
+  }, 300);
+}
+
+function startMusic(){
+  if (!audioCtx) initAudio();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  masterGain.gain.cancelScheduledValues(audioCtx.currentTime);
+  masterGain.gain.setValueAtTime(masterGain.gain.value, audioCtx.currentTime);
+  masterGain.gain.linearRampToValueAtTime(1.0, audioCtx.currentTime + 0.9);
+  isPlaying = true;
+  document.getElementById('musicToggle').classList.add('playing');
+  document.getElementById('musicToggle').classList.remove('paused');
+  // set the small icon to speaker
+  updateMusicIcon(true);
+}
+function stopMusic(){
+  if (!audioCtx) return;
+  masterGain.gain.cancelScheduledValues(audioCtx.currentTime);
+  masterGain.gain.setValueAtTime(masterGain.gain.value, audioCtx.currentTime);
+  masterGain.gain.linearRampToValueAtTime(0.0, audioCtx.currentTime + 0.8);
+  isPlaying = false;
+  document.getElementById('musicToggle').classList.remove('playing');
+  document.getElementById('musicToggle').classList.add('paused');
+  updateMusicIcon(false);
+}
+
+// update icon (speaker vs mute)
+function updateMusicIcon(on){
+  const svg = document.getElementById('musicIcon');
+  if (!on){
+    svg.innerHTML = '<path d="M12 3v18l-7-5H3V8h2l7-5z"/>'; // small muted-ish
+  } else {
+    svg.innerHTML = '<path d="M5 9v6h4l5 5V4L9 9H5z"/>';
+  }
+}
+
+/* Interactions for music toggle */
+const musicToggle = document.getElementById('musicToggle');
+musicToggle.addEventListener('click', async ()=>{
+  // first user gesture to initialize audio context
+  if (!audioCtx) initAudio();
+  if (!isPlaying){
+    startMusic();
+  } else {
+    stopMusic();
+  }
+});
+
+// allow keyboard toggle (accessibility)
+musicToggle.addEventListener('keydown', (e)=>{
+  if (e.key === 'Enter' || e.key === ' ') musicToggle.click();
+});
+
+/* Auto-start music softly if browser allows; otherwise wait for toggle press.
+   We'll attempt to resume audio once user interacts anywhere (one-shot). */
+window.addEventListener('click', () => {
+  if (!audioCtx) initAudio();
+  if (!isPlaying) {
+    // try to start but honor autoplay restrictions: start only if resumed
+    audioCtx.resume().then(()=> {
+      startMusic();
+    }).catch(()=> {
+      // keep it off until user toggles
+    });
+  }
+}, { once: true, capture: true });
+
+/* ---------- Surprise link is already wired earlier ---------- */
+
+/* ---------- Ensure initial focus/page ---------- */
+window.addEventListener('load', ()=> {
+  goTo('page1');
+  updateMusicIcon(false);
+});
+
+</script>
+</body>
+</html>
