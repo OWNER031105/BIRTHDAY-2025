@@ -33,20 +33,105 @@
   /* small icon inside */
   #musicToggle svg{ width:20px;height:20px; fill:#fff; }
 
-  /* === PAGE 1 (Birthday) === */
-  #page1{ background: radial-gradient(circle at center,#1a1a2e,#0f0f1a); justify-content:center; text-align:center; }
-  #page1 h1{ font-size:56px; margin:6px 0; color:#fff; text-shadow:0 0 18px var(--pink1),0 0 36px var(--pink2); animation:glow 2s infinite alternate; }
-  @keyframes glow{ from{ text-shadow:0 0 12px var(--pink2);} to{ text-shadow:0 0 36px #fff;} }
-  #page1 p{ max-width:920px; margin:14px 0; font-size:20px; color:#fff; }
+  /* === PAGE 1 (Birthday) - replaced with letter-by-letter + fireworks === */
+  #page1{
+    /* keep relative for positioned fireworks */
+    background: radial-gradient(circle at center,#0a0012,#000);
+    justify-content:center;
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+  }
 
+  /* Animated gradient sky behind fireworks for subtle color */
+  #page1::before{
+    content:"";
+    position:absolute; inset:0; z-index:0;
+    background: linear-gradient(-45deg, rgba(255,107,107,0.08), rgba(179,136,255,0.06), rgba(110,203,255,0.06), rgba(255,154,162,0.06));
+    background-size: 400% 400%;
+    animation: skyShift 20s ease infinite;
+    pointer-events:none;
+  }
+  @keyframes skyShift{
+    0%{ background-position:0% 50%; }
+    50%{ background-position:100% 50%; }
+    100%{ background-position:0% 50%; }
+  }
+
+  /* Letter-by-letter reveal styling (page1 heading) */
+  .letter-reveal {
+    position:relative;
+    z-index:4; /* above fireworks */
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:14px;
+    text-align:center;
+    font-weight:700;
+    font-size:56px;
+    color:#fff;
+    margin:24px 12px;
+    text-shadow: 0 0 18px var(--pink1), 0 0 36px var(--pink2);
+  }
+  .letter-reveal .word { display:inline-block; white-space:pre; }
+  .letter-reveal .letter {
+    display:inline-block;
+    opacity:0;
+    transform:translateY(50px) scale(0.9);
+    filter:blur(10px);
+    animation: letterAppear 0.9s ease-out forwards;
+  }
+  @keyframes letterAppear{
+    0%{ opacity:0; transform:translateY(50px) scale(0.9); filter:blur(10px); }
+    60%{ opacity:1; transform:translateY(-8px) scale(1.05); filter:blur(3px); }
+    100%{ opacity:1; transform:translateY(0) scale(1); filter:blur(0); }
+  }
+  /* Glow on last letter */
+  .letter-reveal .word:last-child .letter:last-child{
+    animation: letterAppear 0.9s ease-out forwards, glowLoop 3s ease-in-out 5s infinite;
+  }
+  @keyframes glowLoop{
+    0%{ text-shadow: 0 0 12px var(--pink2), 0 0 24px var(--pink1); }
+    50%{ text-shadow: 0 0 28px #fff, 0 0 56px var(--pink1); }
+    100%{ text-shadow: 0 0 12px var(--pink2), 0 0 24px var(--pink1); }
+  }
+
+  /* CTA on page1 */
+  #page1 p{ z-index:4; color:#fff; margin-top:14px; font-size:18px; }
   .cta{
     margin-top:18px; padding:12px 26px; border-radius:28px; border:0; font-weight:700; cursor:pointer;
     background:linear-gradient(90deg,var(--pink1),var(--pink2)); color:#fff; box-shadow:0 10px 36px rgba(255,110,150,0.14);
+    z-index:4;
   }
 
-  /* floating shapes only on page1 (injected via JS) */
+  /* Floating shapes (kept) */
   .float-shape{ position:absolute; bottom:-160px; opacity:0.95; border-radius:50%; pointer-events:none; animation:floatUp linear infinite; }
   @keyframes floatUp{ 0%{ transform:translateY(0) rotate(0deg); opacity:1 } 100%{ transform:translateY(-125vh) rotate(360deg); opacity:0 } }
+
+  /* Firework/sky-shot styles */
+  .fw-trail {
+    position: absolute;
+    width: 3px;
+    height: 14px;
+    border-radius: 50%;
+    background: linear-gradient(to top, rgba(255,255,255,0.95), rgba(255,255,255,0.2));
+    z-index:1;
+    pointer-events:none;
+    filter:drop-shadow(0 0 6px rgba(255,200,200,0.25));
+  }
+  .fw-particle {
+    position:absolute;
+    width:6px; height:6px; border-radius:50%;
+    pointer-events:none;
+    z-index:2;
+    will-change: transform, opacity;
+    filter:drop-shadow(0 0 10px rgba(255,200,200,0.25));
+  }
+  @keyframes particleMove {
+    0%{ opacity:1; transform:translate(0,0) scale(1); filter:blur(0); }
+    80%{ opacity:0.95; filter:blur(0); }
+    100%{ opacity:0; transform:translate(var(--x), var(--y)) scale(0.8); filter:blur(6px); }
+  }
 
   /* === PAGE 2 (Password) === */
   #page2{ background: linear-gradient(180deg,#020024,#004e92); align-items:center; justify-content:center; }
@@ -77,7 +162,6 @@
   .wish-card{ width:100%; max-width:930px; background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02)); border-radius:18px; padding:28px; box-shadow:0 30px 80px rgba(0,0,0,0.6); border:1px solid rgba(255,255,255,0.04); }
   .wish-title{ text-align:center; color:#ffd8f0; font-size:28px; margin-bottom:12px; }
   .wish-text{ color:#fff; font-size:18px; line-height:1.8; white-space:pre-wrap; text-align:left; }
-
   .wish-actions{ display:flex; gap:12px; justify-content:center; margin-top:18px; flex-wrap:wrap; }
 
   /* === PAGE 5 (Surprise) === */
@@ -95,7 +179,7 @@
   /* responsive */
   @media (max-width:680px){
     .wish-text{ font-size:16px; }
-    #page1 h1{ font-size:40px; }
+    .letter-reveal{ font-size:40px; gap:8px; }
     .pw-card{ padding:18px; }
     .qa-container{ padding: 0 8px; }
   }
@@ -103,16 +187,16 @@
 </head>
 <body>
 
-<!-- Music Toggle (top-right) -->
-<button id="musicToggle" class="paused" aria-label="Toggle background music" title="Toggle music">
-  <!-- speaker icon -->
-  <svg id="musicIcon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9v6h4l5 5V4L9 9H5z"/></svg>
-</button>
-
-<!-- PAGE 1: Birthday -->
+<!-- PAGE 1: Birthday (REPLACED) -->
 <section id="page1" class="section active" aria-label="Birthday page">
-  <h1>🎂 Happy Birthday DEEPIKSHA 🎂</h1>
-  <p>Wishing you endless joy, laughter, and love — click the gift to continue the surprise.</p>
+  <!-- Fireworks canvas area sits behind the text, but we use DOM elements positioned absolutely -->
+  <h1 class="letter-reveal" aria-hidden="false">
+    <span class="word">Happy</span>
+    <span class="word">Birthday</span>
+    <span class="word">DEEPIKSHA</span>
+  </h1>
+
+  <p style="z-index:4">Wishing you endless joy, laughter, and love — click the gift to continue the surprise.</p>
   <button class="cta" onclick="goTo('page2')">Open Secret Page 🎁</button>
 </section>
 
@@ -272,166 +356,150 @@ document.getElementById('openSurprise').addEventListener('click', ()=>{
   window.open('https://go.screenpal.com/watch/cT6OXvnb8dU', '_blank', 'noopener');
 });
 
-/* ---------- Background music (WebAudio) ---------- */
-/* Soft instrumental: simple pad + gentle arpeggio loop synthesized in-browser */
-let audioCtx = null;
-let masterGain = null;
-let isPlaying = false;
-let schedulerId = null;
-let arpIndex = 0;
-const arpNotes = [ 261.63, 329.63, 392.00, 523.25 ]; // C4 E4 G4 C5
-function initAudio(){
-  if (audioCtx) return;
-  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  masterGain = audioCtx.createGain();
-  masterGain.gain.value = 0.0; // start muted until user toggles
-  masterGain.connect(audioCtx.destination);
-
-  /* Soft pad using 3 detuned oscillators + lowpass */
-  const padOscs = [];
-  const padNodes = [];
-  const padGain = audioCtx.createGain();
-  padGain.gain.value = 0.18;
-  padGain.connect(masterGain);
-
-  const padFilter = audioCtx.createBiquadFilter();
-  padFilter.type = 'lowpass';
-  padFilter.frequency.value = 1200;
-  padFilter.Q.value = 0.7;
-  padFilter.connect(padGain);
-
-  // create continuous subtle chord via oscillators, detuned
-  const freqs = [261.63, 392.00, 523.25]; // C major chord C4 G4 C5
-  freqs.forEach((f, i) => {
-    const o = audioCtx.createOscillator();
-    o.type = 'sine';
-    o.frequency.value = f * (1 + (i-1)*0.0025);
-    const g = audioCtx.createGain();
-    g.gain.value = 0.0;
-    o.connect(g);
-    g.connect(padFilter);
-    o.start();
-    padOscs.push(o);
-    padNodes.push(g);
+/* ---------- PAGE1: letter-by-letter reveal script ---------- */
+(function letterSplit(){
+  const container = document.querySelector('.letter-reveal');
+  if (!container) return;
+  document.querySelectorAll('.letter-reveal .word').forEach((word, wordIndex) => {
+    const letters = word.textContent.split('');
+    word.textContent = '';
+    letters.forEach((letter, i) => {
+      const span = document.createElement('span');
+      span.textContent = letter;
+      span.className = 'letter';
+      // slow graceful timing for letters + words
+      span.style.animationDelay = `${i * 0.25 + wordIndex * 1.5}s`;
+      word.appendChild(span);
+    });
   });
+})();
 
-  // slowly ramp pad gain in/out to avoid clicks
-  let padOn = true;
-  const padFade = () => {
-    padNodes.forEach((g, i) => {
-      g.gain.cancelScheduledValues(audioCtx.currentTime);
-      g.gain.setValueAtTime(g.gain.value, audioCtx.currentTime);
-      g.gain.linearRampToValueAtTime(padOn ? 0.12 : 0.0, audioCtx.currentTime + 1.6);
-    });
-    padOn = !padOn;
-  };
-  // initial fade in
-  padFade();
+/* ---------- PAGE1: realistic fireworks (sky shots) ---------- */
+(function fireworksEngine(){
+ const colors = [
+  '#ff3b3b', // red
+  '#ff9a00', // orange
+  '#ffe500', // yellow
+  '#00ff9d', // green
+  '#00c8ff', // cyan
+  '#3b82f6', // blue
+  '#b388ff', // violet
+  '#ff6bcb', // pink
+  '#ffffff'  // white sparkle
+];
+  // Launch a firework: rise a trail then burst into particles
+  function launchFirework(){
+    // random x, biased to center so background looks balanced
+    const margin = 0.1 * window.innerWidth;
+    const x = margin + Math.random() * (window.innerWidth - margin*2);
+    const trail = document.createElement('div');
+    trail.className = 'fw-trail';
+    trail.style.left = `${x}px`;
+    trail.style.bottom = `-10px`;
+    trail.style.height = `${12 + Math.random()*20}px`;
+    trail.style.opacity = 0.95;
+    document.body.appendChild(trail);
 
-  // gentle periodic modulation to keep pad alive
-  setInterval(()=> { padFade(); }, 9000);
-
-  // Arpeggio scheduler (simple)
-  const scheduleArp = () => {
-    const now = audioCtx.currentTime;
-    const t0 = now + 0.02;
-    const noteDur = 0.5;
-    // create pluck-like tone for the current arp note
-    const osc = audioCtx.createOscillator();
-    osc.type = 'triangle';
-    osc.frequency.value = arpNotes[arpIndex % arpNotes.length];
-    const g = audioCtx.createGain();
-    g.gain.value = 0.0;
-    osc.connect(g);
-    g.connect(masterGain);
-    const attack = 0.01;
-    const decay = noteDur * 0.9;
-    g.gain.setValueAtTime(0.0, t0);
-    g.gain.linearRampToValueAtTime(0.12, t0 + attack);
-    g.gain.exponentialRampToValueAtTime(0.0001, t0 + attack + decay);
-    osc.start(t0);
-    osc.stop(t0 + attack + decay + 0.05);
-    arpIndex++;
-  };
-
-  // schedule loop using setInterval (coarse but ok here)
-  schedulerId = setInterval(()=> {
-    if (isPlaying && audioCtx) scheduleArp();
-  }, 300);
-}
-
-function startMusic(){
-  if (!audioCtx) initAudio();
-  if (audioCtx.state === 'suspended') audioCtx.resume();
-  masterGain.gain.cancelScheduledValues(audioCtx.currentTime);
-  masterGain.gain.setValueAtTime(masterGain.gain.value, audioCtx.currentTime);
-  masterGain.gain.linearRampToValueAtTime(1.0, audioCtx.currentTime + 0.9);
-  isPlaying = true;
-  document.getElementById('musicToggle').classList.add('playing');
-  document.getElementById('musicToggle').classList.remove('paused');
-  // set the small icon to speaker
-  updateMusicIcon(true);
-}
-function stopMusic(){
-  if (!audioCtx) return;
-  masterGain.gain.cancelScheduledValues(audioCtx.currentTime);
-  masterGain.gain.setValueAtTime(masterGain.gain.value, audioCtx.currentTime);
-  masterGain.gain.linearRampToValueAtTime(0.0, audioCtx.currentTime + 0.8);
-  isPlaying = false;
-  document.getElementById('musicToggle').classList.remove('playing');
-  document.getElementById('musicToggle').classList.add('paused');
-  updateMusicIcon(false);
-}
-
-// update icon (speaker vs mute)
-function updateMusicIcon(on){
-  const svg = document.getElementById('musicIcon');
-  if (!on){
-    svg.innerHTML = '<path d="M12 3v18l-7-5H3V8h2l7-5z"/>'; // small muted-ish
-  } else {
-    svg.innerHTML = '<path d="M5 9v6h4l5 5V4L9 9H5z"/>';
+    // Animate the trail (using CSS transform through JS)
+    // We'll simulate vertical rise by tweening bottom
+    const riseDuration = 900 + Math.random()*600; // ms
+    const risePeak = window.innerHeight * (0.25 + Math.random() * 0.45); // where it bursts
+    const start = performance.now();
+    function tick(now){
+      const t = Math.min((now - start) / riseDuration, 1);
+      // ease-out curve
+      const eased = 1 - Math.pow(1 - t, 3);
+      trail.style.transform = `translateY(${-eased * risePeak}px)`;
+      if (t < 1) requestAnimationFrame(tick);
+      else {
+        // burst at current x, y
+        const rect = trail.getBoundingClientRect();
+        const burstX = rect.left + rect.width/2;
+        const burstY = rect.top + rect.height/2;
+        trail.remove();
+        createBurst(burstX, burstY);
+      }
+    }
+    requestAnimationFrame(tick);
   }
-}
 
-/* Interactions for music toggle */
-const musicToggle = document.getElementById('musicToggle');
-musicToggle.addEventListener('click', async ()=>{
-  // first user gesture to initialize audio context
-  if (!audioCtx) initAudio();
-  if (!isPlaying){
-    startMusic();
-  } else {
-    stopMusic();
+  // create burst of particles at x,y (screen coords)
+  function createBurst(x, y){
+    const particles = 24 + Math.floor(Math.random()*16);
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    for (let i=0;i<particles;i++){
+      const p = document.createElement('div');
+      p.className = 'fw-particle';
+      p.style.left = `${x - 3}px`;
+      p.style.top = `${y - 3}px`;
+      // small particle color gradient
+      p.style.background = `radial-gradient(circle, ${color}, transparent 60%)`;
+      const angle = Math.random() * Math.PI * 2;
+      const speed = (70 + Math.random()*130); // px travel
+      const dx = Math.cos(angle) * speed;
+      const dy = Math.sin(angle) * speed;
+      p.style.setProperty('--x', `${dx}px`);
+      p.style.setProperty('--y', `${dy}px`);
+      const dur = 1100 + Math.random()*900; // ms
+      p.style.animation = `particleMove ${dur}ms cubic-bezier(.2,.8,.2,1) forwards`;
+      // slight scale and staggered delay for prettier look
+      p.style.transform = `scale(${0.8 + Math.random()*0.8})`;
+      p.style.opacity = 0.95;
+      document.body.appendChild(p);
+      // remove after animation
+      setTimeout(()=> p.remove(), dur + 50);
+    }
+    // small secondary glow center that fades
+    const core = document.createElement('div');
+    core.style.position = 'absolute';
+    core.style.left = `${x - 6}px`;
+    core.style.top = `${y - 6}px`;
+    core.style.width = '12px';
+    core.style.height = '12px';
+    core.style.borderRadius = '50%';
+    core.style.background = `radial-gradient(circle, rgba(255,255,255,0.9), ${color} 40%, transparent 60%)`;
+    core.style.filter = 'blur(6px)';
+    core.style.zIndex = 2;
+    document.body.appendChild(core);
+    setTimeout(()=> core.remove(), 700 + Math.random()*600);
   }
-});
 
-// allow keyboard toggle (accessibility)
-musicToggle.addEventListener('keydown', (e)=>{
-  if (e.key === 'Enter' || e.key === ' ') musicToggle.click();
-});
-
-/* Auto-start music softly if browser allows; otherwise wait for toggle press.
-   We'll attempt to resume audio once user interacts anywhere (one-shot). */
-window.addEventListener('click', () => {
-  if (!audioCtx) initAudio();
-  if (!isPlaying) {
-    // try to start but honor autoplay restrictions: start only if resumed
-    audioCtx.resume().then(()=> {
-      startMusic();
-    }).catch(()=> {
-      // keep it off until user toggles
-    });
+  // Launch fireworks continuously but only when page1 active
+  let fwInterval;
+  function startLoop(){
+    if (fwInterval) return;
+    fwInterval = setInterval(()=>{
+      // only launch if page1 is active
+      if (!document.getElementById('page1').classList.contains('active')) return;
+      // launch 1-5 fireworks per cycle for variety
+      const count = 1 + Math.floor(Math.random()*3);
+      for (let i=0;i<count;i++){
+        // small random delay between launches in this cycle
+        setTimeout(launchFirework, i * 240 + Math.random()*400);
+      }
+    }, 900 + Math.random()*800);
   }
-}, { once: true, capture: true });
+  function stopLoop(){
+    if (!fwInterval) return;
+    clearInterval(fwInterval);
+    fwInterval = null;
+    // remove any stray trails/particles/cores left in DOM when stopping
+    document.querySelectorAll('.fw-trail, .fw-particle').forEach(el => el.remove());
+  }
 
-/* ---------- Surprise link is already wired earlier ---------- */
+  // start/stop based on active page
+  // OBSERVE the #page1 element's class attribute so we respond exactly to it
+  const page1El = document.getElementById('page1');
+  const observer = new MutationObserver(()=> {
+    const page1Active = page1El.classList.contains('active');
+    if (page1Active) startLoop(); else stopLoop();
+  });
+  // observe changes to attributes (class)
+  observer.observe(page1El, { attributes: true, attributeFilter: ['class'] });
 
-/* ---------- Ensure initial focus/page ---------- */
-window.addEventListener('load', ()=> {
-  goTo('page1');
-  updateMusicIcon(false);
-});
-
+  // also start on load if page1 active
+  if (page1El.classList.contains('active')) startLoop();
+})();
 </script>
 </body>
 </html>
